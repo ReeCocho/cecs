@@ -13,16 +13,16 @@ pub struct Entity {
 impl Entity {
     #[inline]
     pub fn from_raw_parts(id: u32, ver: NonZeroU32) -> Self {
-        todo!()
+        Self { id, ver }
     }
 
     #[inline]
     pub fn id(&self) -> u32 {
-        todo!()
+        self.id
     }
 
     #[inline]
     pub fn ver(&self) -> u32 {
-        todo!()
+        self.ver.get()
     }
 }

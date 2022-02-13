@@ -2,6 +2,7 @@ use std::any::TypeId;
 
 use crate::component::Component;
 
+pub mod access;
 pub mod archetypes;
 pub mod buffer;
 

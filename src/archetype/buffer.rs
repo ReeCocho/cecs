@@ -1,12 +1,12 @@
 use std::any::Any;
 
+use crate::prw_lock::{PrwLock, PrwReadHandle, PrwWriteHandle};
+
 /// Holds lists of objects of a single type. The `Archetypes` uses these to allocate memory for
 /// components and entities.
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct DataBuffers<T: Send + Sync> {
-    /// WARNING: The type signature is going to end up changing here because we needs to be able
-    /// to guarantee safety when passing around references to the inner vectors.
-    buffers: Vec<Vec<T>>,
+    buffers: Vec<PrwLock<Vec<T>>>,
 }
 
 pub trait GenericDataBuffers: Send + Sync {
@@ -25,7 +25,7 @@ impl<T: Send + Sync> DataBuffers<T> {
     /// Should panic if the buffer is currently being written to or if the provided buffer index
     /// is invalid.
     #[inline]
-    pub fn get(&self, i: usize) -> &Vec<T> {
+    pub fn get(&self, i: usize) -> PrwReadHandle<Vec<T>> {
         todo!()
     }
 
@@ -35,7 +35,7 @@ impl<T: Send + Sync> DataBuffers<T> {
     /// Should panic if the buffer is currently being read from or written to or if the provided
     /// buffer index is invalid.
     #[inline]
-    pub fn get_mut(&self, i: usize) -> &mut Vec<T> {
+    pub fn get_mut(&self, i: usize) -> PrwWriteHandle<Vec<T>> {
         todo!()
     }
 }

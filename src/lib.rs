@@ -2,6 +2,7 @@ pub mod archetype;
 pub mod component;
 pub mod dispatcher;
 pub mod entity;
+pub mod prw_lock;
 pub mod system;
 pub mod world;
 
