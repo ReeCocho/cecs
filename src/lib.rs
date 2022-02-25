@@ -8,8 +8,8 @@ pub mod world;
 
 #[cfg(test)]
 mod tests {
-    use crate::{dispatcher::Dispatcher, system::System, world::World};
     use crate::archetype::Archetype;
+    use crate::{dispatcher::Dispatcher, system::System, world::World};
     use std::any::TypeId;
 
     struct TestSystem;
@@ -23,12 +23,11 @@ mod tests {
         }
     }
     */
-    
+
     #[test]
     fn basic_example() {
         // Create the world
         let mut world = World::new();
-        
 
         // TODO: Add a way to create entities with components attached
 
@@ -39,20 +38,18 @@ mod tests {
         dispatcher.run(&mut world);
     }
 
-    
     #[test]
-    fn checkSetComparisons()
-    {
+    fn checkSetComparisons() {
         let mut one = Archetype::default();
         let mut two = Archetype::default();
-        one.add_component_by_id( TypeId::of::<u32>() );
-        two.add_component_by_id( TypeId::of::<u32>() );
+        one.add_component_by_id(TypeId::of::<u32>());
+        two.add_component_by_id(TypeId::of::<u32>());
         assert_eq!(one.subset_of(&two), true);
 
-        one.add_component_by_id( TypeId::of::<i64>() );
+        one.add_component_by_id(TypeId::of::<i64>());
         assert_eq!(one.subset_of(&two), false);
-        assert_eq!(two.subset_of(&one), true );
-        
-        assert_eq!(1,1);
+        assert_eq!(two.subset_of(&one), true);
+
+        assert_eq!(1, 1);
     }
 }

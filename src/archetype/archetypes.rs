@@ -43,7 +43,13 @@ pub struct ArchetypeDescriptor {
 
 impl Default for Archetypes {
     fn default() -> Self {
-        todo!()
+        Archetypes {
+            archetype_descriptors: Vec::default(),
+            to_archetype_descriptor: HashMap::default(),
+            buffers: Vec::default(),
+            to_buffers: HashMap::default(),
+            entities: DataBuffers::default(),
+        }
     }
 }
 
@@ -55,7 +61,11 @@ impl Archetypes {
 
     /// Add a new archetype descriptor to the container and return a unique ID for it.
     pub fn add_archetype(&mut self, descriptor: ArchetypeDescriptor) -> ArchetypeDescriptorId {
-        todo!()
+        let id = ArchetypeDescriptorId(self.archetype_descriptors.len() as u32);
+        self.to_archetype_descriptor
+            .insert(descriptor.archetype.clone(), id);
+        self.archetype_descriptors.push(descriptor);
+        id
     }
 
     /// Get a references to an archetype descriptor and its ID by the archetype it describes.
@@ -65,24 +75,33 @@ impl Archetypes {
         &self,
         archetype: &Archetype,
     ) -> Option<(&ArchetypeDescriptor, ArchetypeDescriptorId)> {
+        // NOTE: The `ArchetypeDescriptorId` is the index within `archetype_descriptors` where the
+        // descriptor lives
+
         todo!()
     }
 
     #[inline]
     pub fn get_entity_buffers(&self) -> &DataBuffers<Entity> {
-        todo!()
+        &self.entities
     }
 
     #[inline]
     pub fn get_entity_buffers_mut(&mut self) -> &mut DataBuffers<Entity> {
-        todo!()
+        &mut self.entities
     }
 
     /// Get the data buffers for a component type.
     ///
     /// Returns `None` if data buffers for the component don't exist.
     pub fn get_component_buffers<T: Component + 'static>(&self) -> Option<&DataBuffers<T>> {
-        todo!()
+        if let Some(idx) = self.to_buffers.get(&TypeId::of::<T>()) {
+            self.buffers[idx.0 as usize]
+                .as_any()
+                .downcast_ref::<DataBuffers<T>>()
+        } else {
+            None
+        }
     }
 
     /// Get mutable access to the data buffers for a component type.
@@ -91,12 +110,26 @@ impl Archetypes {
     pub fn get_component_buffers_mut<T: Component + 'static>(
         &mut self,
     ) -> Option<&mut DataBuffers<T>> {
-        todo!()
+        if let Some(idx) = self.to_buffers.get(&TypeId::of::<T>()) {
+            self.buffers[idx.0 as usize]
+                .as_any_mut()
+                .downcast_mut::<DataBuffers<T>>()
+        } else {
+            None
+        }
     }
 
     /// Create data buffers for a component type. Should do nothing if data buffers for the
     /// component type already exist.
     pub fn create_component_buffers<T: Component + 'static>(&mut self) {
+        // Step 1: Check to see if `self.buffers` already contains a buffer of the appropriate
+        // type. If it does, do nothing.
+
+        // Step 2: Create a `DataBuffers<T>` instance and put it into `self.buffers`.
+
+        // Step 3: Update `self.to_buffers` with a key of `TypeId::of<T>()` and a value of the
+        // index of the newly created buffer in `self.buffers`.
+
         todo!()
     }
 }
@@ -104,17 +137,17 @@ impl Archetypes {
 impl ArchetypeDescriptor {
     #[inline]
     pub fn archetype(&self) -> &Archetype {
-        todo!()
+        &self.archetype
     }
 
     #[inline]
     pub fn component_map(&self) -> &[usize] {
-        todo!()
+        &self.component_map
     }
 
     #[inline]
     pub fn entities(&self) -> usize {
-        todo!()
+        self.entities
     }
 }
 
