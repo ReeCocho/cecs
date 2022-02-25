@@ -1,4 +1,10 @@
-use std::ops::{Deref, DerefMut};
+use std::{
+    ops::{Deref, DerefMut},
+    sync::{
+        atomic::{AtomicU32, Ordering},
+        Arc,
+    },
+};
 
 /// A panicky read-write lock.
 ///
@@ -48,31 +54,45 @@ use std::ops::{Deref, DerefMut};
 /// The tricky part of the implementation is going to be getting the read-write logic down. We need
 /// to allow multiple threads to request reads and writes. There can be as many readers as we want,
 /// but once someone requests write access, we must ensure that no one else is reading or writing.
-pub struct PrwLock<T> {
-    _remove_me: std::marker::PhantomData<T>,
+pub struct PrwLock<T>(Arc<PrwLockInner<T>>);
+
+struct PrwLockInner<T> {
+    data: T,
+    access_state: AtomicU32,
 }
 
-pub struct PrwReadHandle<T> {
-    _remove_me: std::marker::PhantomData<T>,
-}
+pub struct PrwReadHandle<T>(Arc<PrwLockInner<T>>);
 
-pub struct PrwWriteHandle<T> {
-    _remove_me: std::marker::PhantomData<T>,
-}
+pub struct PrwWriteHandle<T>(Arc<PrwLockInner<T>>);
 
 impl<T> PrwLock<T> {
     pub fn new(data: T) -> Self {
-        todo!()
+        Self(Arc::new(PrwLockInner {
+            data,
+            access_state: AtomicU32::new(0),
+        }))
     }
 
-    /// Gets read access to the data in the lock, or returns `None` if we can't access the data.
-    pub fn read(&self) -> Option<PrwReadHandle<T>> {
-        todo!()
+    /// Gets read access to the data in the lock.
+    pub fn read(&self) -> PrwReadHandle<T> {
+        // See who is accessing the PrwLock
+        let access_state = self.0.access_state.fetch_add(1, Ordering::Relaxed);
+
+        // Panic if there is a writer
+        assert_ne!(access_state, u32::MAX);
+
+        PrwReadHandle(self.0.clone())
     }
 
-    /// Gets read access to the data in the lock, or returns `None` if we can't access the data.
-    pub fn write(&self) -> Option<PrwWriteHandle<T>> {
-        todo!()
+    /// Gets read access to the data in the lock.
+    pub fn write(&self) -> PrwWriteHandle<T> {
+        // See who is accessing the PrwLock
+        let access_state = self.0.access_state.fetch_add(u32::MAX, Ordering::Relaxed);
+
+        // Panic if there are readers or writers
+        assert_eq!(access_state, 0);
+
+        PrwWriteHandle(self.0.clone())
     }
 }
 
@@ -80,7 +100,13 @@ impl<T> Deref for PrwReadHandle<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        todo!()
+        &self.0.data
+    }
+}
+
+impl<T> Drop for PrwReadHandle<T> {
+    fn drop(&mut self) {
+        self.0.access_state.fetch_sub(1, Ordering::Relaxed);
     }
 }
 
@@ -92,16 +118,64 @@ impl<T> Deref for PrwWriteHandle<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        todo!()
+        &self.0.data
+    }
+}
+
+impl<T> Drop for PrwWriteHandle<T> {
+    fn drop(&mut self) {
+        self.0.access_state.store(0, Ordering::Relaxed);
     }
 }
 
 impl<T> DerefMut for PrwWriteHandle<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        todo!()
+        unsafe { (&self.0.data as *const T as *mut T).as_mut().unwrap() }
     }
 }
 
 unsafe impl<T> Send for PrwWriteHandle<T> {}
 
 unsafe impl<T> Sync for PrwWriteHandle<T> {}
+
+#[cfg(test)]
+mod tests {
+    use super::PrwLock;
+
+    #[test]
+    fn prw_lock_test() {
+        let lock = PrwLock::new(42);
+
+        let handle1 = lock.read();
+        assert_eq!(*handle1, 42);
+
+        let handle2 = lock.read();
+        assert_eq!(*handle2, 42);
+
+        std::mem::drop(handle1);
+        std::mem::drop(handle2);
+
+        let mut handle3 = lock.write();
+        assert_eq!(*handle3, 42);
+
+        *handle3 += 27;
+
+        assert_eq!(*handle3, 69);
+    }
+
+    #[test]
+    #[should_panic]
+    fn prw_lock_multiple_writers() {
+        let lock = PrwLock::new(42);
+        let mut _handle1 = lock.write();
+        let mut _handle2 = lock.write();
+    }
+
+    #[test]
+    #[should_panic]
+    fn prw_lock_readers_and_writers() {
+        let lock = PrwLock::new(42);
+        let mut _handle1 = lock.read();
+        let mut _handle2 = lock.write();
+    }
+}
