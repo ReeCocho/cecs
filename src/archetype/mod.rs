@@ -7,7 +7,7 @@ pub mod archetypes;
 pub mod buffer;
 
 /// Describes a set of component types.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Archetype {
     ids: Vec<TypeId>,
 }
@@ -54,15 +54,16 @@ impl Archetype {
     pub fn subset_of(&self, other: &Archetype) -> bool {
         let mut x = 0;
         let mut y = 0;
-        
-        let a = &self.ids; 
+
+        let a = &self.ids;
         let b = &other.ids;
         let first = a.len();
         let second = b.len();
 
-        // Subset will be smaller or equal to superceding set 
-        if (first > second) 
-            { return false; }
+        // Subset will be smaller or equal to superceding set
+        if (first > second) {
+            return false;
+        }
 
         // while we can iterate through either list
         while x < first && y < second {
@@ -85,7 +86,7 @@ impl Archetype {
                 continue;
             }
         }
-        
+
         // return true if we traversed fully through
         // ... our Vector, indicating all our items are included
         x == first

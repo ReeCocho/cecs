@@ -4,7 +4,6 @@ use crate::prw_lock::{PrwLock, PrwReadHandle, PrwWriteHandle};
 
 /// Holds lists of objects of a single type. The `Archetypes` uses these to allocate memory for
 /// components and entities.
-#[derive(Default)]
 pub struct DataBuffers<T: Send + Sync> {
     buffers: Vec<PrwLock<Vec<T>>>,
 }
@@ -16,6 +15,14 @@ pub trait GenericDataBuffers: Send + Sync {
 
     /// Allocates a new row of component storage and returns the index of the row.
     fn create(&mut self) -> usize;
+}
+
+impl<T: Send + Sync> Default for DataBuffers<T> {
+    fn default() -> Self {
+        DataBuffers {
+            buffers: Vec::default(),
+        }
+    }
 }
 
 impl<T: Send + Sync> DataBuffers<T> {
