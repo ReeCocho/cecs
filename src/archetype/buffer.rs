@@ -14,7 +14,7 @@ pub trait GenericDataBuffers: Send + Sync {
 
     fn as_any_mut(&mut self) -> &mut dyn Any;
 
-    /// Makes a new buffer and returns the index of that buffer.
+    /// Allocates a new row of component storage and returns the index of the row.
     fn create(&mut self) -> usize;
 }
 
@@ -26,7 +26,7 @@ impl<T: Send + Sync> DataBuffers<T> {
     /// is invalid.
     #[inline]
     pub fn get(&self, i: usize) -> PrwReadHandle<Vec<T>> {
-        todo!()
+        self.buffers[i].read()
     }
 
     /// Requests mutable access to a buffer within the container.
@@ -36,20 +36,24 @@ impl<T: Send + Sync> DataBuffers<T> {
     /// buffer index is invalid.
     #[inline]
     pub fn get_mut(&self, i: usize) -> PrwWriteHandle<Vec<T>> {
-        todo!()
+        self.buffers[i].write()
     }
 }
 
-impl<T: Send + Sync> GenericDataBuffers for DataBuffers<T> {
+impl<T: Send + Sync + 'static> GenericDataBuffers for DataBuffers<T> {
+    #[inline]
     fn as_any(&self) -> &dyn Any {
-        todo!()
+        self
     }
 
+    #[inline]
     fn as_any_mut(&mut self) -> &mut dyn Any {
-        todo!()
+        self
     }
 
+    #[inline]
     fn create(&mut self) -> usize {
-        todo!()
+        self.buffers.push(PrwLock::new(Vec::default()));
+        self.buffers.len() - 1
     }
 }
