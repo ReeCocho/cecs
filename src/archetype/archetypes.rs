@@ -232,18 +232,14 @@ impl From<DataBuffersId> for usize {
 #[cfg(test)]
 mod tests
 {
-    use super::{Archetypes, Archetype ,ArchetypeDescriptor, ArchetypeDescriptorId};
+    use super::{Archetypes, Archetype ,ArchetypeDescriptor};
 
-    #[test]
-    fn test1() {
-        assert_eq!(true, true);
-    }
 
     #[test]
     fn arch_descript_test() {
         let mut one = Archetypes::default();
         let arc = Archetype::default();
-        let mut a = one.get_archetype_descriptor(&arc);
+        let a = one.get_archetype_descriptor(&arc);
         assert_eq!(true, a.is_none());
         one.add_archetype( ArchetypeDescriptor{
             archetype: Archetype::default(),
@@ -254,7 +250,5 @@ mod tests
         let a = one.get_archetype_descriptor(&arc);
         let z = a.expect(" ").1.0 as usize;
         assert_eq!(z, 0 as usize);
-        
-        
     }
 }

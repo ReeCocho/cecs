@@ -61,7 +61,7 @@ impl Archetype {
         let second = b.len();
 
         // Subset will be smaller or equal to superceding set
-        if (first > second) {
+        if first > second {
             return false;
         }
 
@@ -76,12 +76,12 @@ impl Archetype {
 
             // Since it's sorted, we continue with
             // ... the smaller of the lists
-            if (a[x] < b[y]) {
+            if a[x] < b[y] {
                 x += 1;
                 continue;
             }
 
-            if (a[x] > b[y]) {
+            if a[x] > b[y] {
                 y += 1;
                 continue;
             }
