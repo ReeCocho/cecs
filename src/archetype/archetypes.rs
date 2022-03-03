@@ -78,7 +78,21 @@ impl Archetypes {
         // NOTE: The `ArchetypeDescriptorId` is the index within `archetype_descriptors` where the
         // descriptor lives
 
-        todo!()
+        let a = &self.to_archetype_descriptor;
+        // archetype is the key, see if the map contains it
+        if !a.contains_key(archetype)
+        {
+            return None;
+        }
+
+        // get ArchetypeDescriptorID of position from the hashmap
+        let vid = a.get(archetype).expect("Getting Descriptor ID");
+        // unwrap the id to get the usize index, then get the reference from the vector
+        let index = vid.0 as usize;
+        let descriptor = self.archetype_descriptors.get(index).expect(" Extracting descriptor ");
+
+        // otherwise return the descriptor as well as wrapper Id in the vector of archetype descriptors
+        return Some( (descriptor,*vid) );
     }
 
     #[inline]
@@ -124,13 +138,20 @@ impl Archetypes {
     pub fn create_component_buffers<T: Component + 'static>(&mut self) {
         // Step 1: Check to see if `self.buffers` already contains a buffer of the appropriate
         // type. If it does, do nothing.
-
-        // Step 2: Create a `DataBuffers<T>` instance and put it into `self.buffers`.
+        let t = TypeId::of::<T>();
+        if self.to_buffers.contains_key(&t)
+        {
+            return;
+        }
+        
+       // Step 2: Create a `DataBuffers<T>` instance and put it into `self.buffers`.
+        let new_data:DataBuffers<T> = DataBuffers::default();
+        let location = DataBuffersId::from( self.buffers.len() );
+        self.buffers.push( Box::new(new_data) );
 
         // Step 3: Update `self.to_buffers` with a key of `TypeId::of<T>()` and a value of the
         // index of the newly created buffer in `self.buffers`.
-
-        todo!()
+        self.to_buffers.insert(t, location);
     }
 }
 
