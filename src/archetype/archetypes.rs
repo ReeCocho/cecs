@@ -227,3 +227,34 @@ impl From<DataBuffersId> for usize {
         item.0 as usize
     }
 }
+
+
+#[cfg(test)]
+mod tests
+{
+    use super::{Archetypes, Archetype ,ArchetypeDescriptor, ArchetypeDescriptorId};
+
+    #[test]
+    fn test1() {
+        assert_eq!(true, true);
+    }
+
+    #[test]
+    fn arch_descript_test() {
+        let mut one = Archetypes::default();
+        let arc = Archetype::default();
+        let mut a = one.get_archetype_descriptor(&arc);
+        assert_eq!(true, a.is_none());
+        one.add_archetype( ArchetypeDescriptor{
+            archetype: Archetype::default(),
+            component_map: Vec::default(),
+            entities: 1 as usize
+        } );
+
+        let a = one.get_archetype_descriptor(&arc);
+        let z = a.expect(" ").1.0 as usize;
+        assert_eq!(z, 0 as usize);
+        
+        
+    }
+}
