@@ -8,6 +8,7 @@ use super::{
 };
 
 /// Holds all of the archetype containers used in a world.
+#[derive(Default)]
 pub struct Archetypes {
     /// All currently registered archetype descriptors.
     archetype_descriptors: Vec<ArchetypeDescriptor>,
@@ -33,24 +34,12 @@ pub struct DataBuffersId(u32);
 /// Describes where the data for an archetype exists within the `Archetypes` object.
 pub struct ArchetypeDescriptor {
     /// The actual archetype being described.
-    archetype: Archetype,
+    pub archetype: Archetype,
     /// A one-to-one mapping between the component type IDs within the archetype and the index
     /// of the `DataBuffers` that holds the components for this archetype.
-    component_map: Vec<usize>,
+    pub map: HashMap<TypeId, usize>,
     /// Index of the entity data buffer.
-    entities: usize,
-}
-
-impl Default for Archetypes {
-    fn default() -> Self {
-        Archetypes {
-            archetype_descriptors: Vec::default(),
-            to_archetype_descriptor: HashMap::default(),
-            buffers: Vec::default(),
-            to_buffers: HashMap::default(),
-            entities: DataBuffers::default(),
-        }
-    }
+    pub entities: usize,
 }
 
 impl Archetypes {
@@ -59,8 +48,15 @@ impl Archetypes {
         Self::default()
     }
 
+    pub(crate) fn descriptors(&self) -> &[ArchetypeDescriptor] {
+        &self.archetype_descriptors
+    }
+
     /// Add a new archetype descriptor to the container and return a unique ID for it.
-    pub fn add_archetype(&mut self, descriptor: ArchetypeDescriptor) -> ArchetypeDescriptorId {
+    pub(crate) fn add_archetype(
+        &mut self,
+        descriptor: ArchetypeDescriptor,
+    ) -> ArchetypeDescriptorId {
         let id = ArchetypeDescriptorId(self.archetype_descriptors.len() as u32);
         self.to_archetype_descriptor
             .insert(descriptor.archetype.clone(), id);
@@ -71,7 +67,7 @@ impl Archetypes {
     /// Get a references to an archetype descriptor and its ID by the archetype it describes.
     ///
     /// Returns `None` if a descriptor matching the provided archetype doesn't exist.
-    pub fn get_archetype_descriptor(
+    pub(crate) fn get_archetype_descriptor(
         &self,
         archetype: &Archetype,
     ) -> Option<(&ArchetypeDescriptor, ArchetypeDescriptorId)> {
@@ -80,8 +76,7 @@ impl Archetypes {
 
         let a = &self.to_archetype_descriptor;
         // archetype is the key, see if the map contains it
-        if !a.contains_key(archetype)
-        {
+        if !a.contains_key(archetype) {
             return None;
         }
 
@@ -89,10 +84,13 @@ impl Archetypes {
         let vid = a.get(archetype).expect("Getting Descriptor ID");
         // unwrap the id to get the usize index, then get the reference from the vector
         let index = vid.0 as usize;
-        let descriptor = self.archetype_descriptors.get(index).expect(" Extracting descriptor ");
+        let descriptor = self
+            .archetype_descriptors
+            .get(index)
+            .expect(" Extracting descriptor ");
 
         // otherwise return the descriptor as well as wrapper Id in the vector of archetype descriptors
-        return Some( (descriptor,*vid) );
+        Some((descriptor, *vid))
     }
 
     #[inline]
@@ -139,36 +137,18 @@ impl Archetypes {
         // Step 1: Check to see if `self.buffers` already contains a buffer of the appropriate
         // type. If it does, do nothing.
         let t = TypeId::of::<T>();
-        if self.to_buffers.contains_key(&t)
-        {
+        if self.to_buffers.contains_key(&t) {
             return;
         }
-        
-       // Step 2: Create a `DataBuffers<T>` instance and put it into `self.buffers`.
-        let new_data:DataBuffers<T> = DataBuffers::default();
-        let location = DataBuffersId::from( self.buffers.len() );
-        self.buffers.push( Box::new(new_data) );
+
+        // Step 2: Create a `DataBuffers<T>` instance and put it into `self.buffers`.
+        let new_data: DataBuffers<T> = DataBuffers::default();
+        let location = DataBuffersId::from(self.buffers.len());
+        self.buffers.push(Box::new(new_data));
 
         // Step 3: Update `self.to_buffers` with a key of `TypeId::of<T>()` and a value of the
         // index of the newly created buffer in `self.buffers`.
         self.to_buffers.insert(t, location);
-    }
-}
-
-impl ArchetypeDescriptor {
-    #[inline]
-    pub fn archetype(&self) -> &Archetype {
-        &self.archetype
-    }
-
-    #[inline]
-    pub fn component_map(&self) -> &[usize] {
-        &self.component_map
-    }
-
-    #[inline]
-    pub fn entities(&self) -> usize {
-        self.entities
     }
 }
 
@@ -228,12 +208,11 @@ impl From<DataBuffersId> for usize {
     }
 }
 
-
 #[cfg(test)]
-mod tests
-{
-    use super::{Archetypes, Archetype ,ArchetypeDescriptor};
+mod tests {
+    use std::collections::HashMap;
 
+    use super::{Archetype, ArchetypeDescriptor, Archetypes};
 
     #[test]
     fn arch_descript_test() {
@@ -241,14 +220,14 @@ mod tests
         let arc = Archetype::default();
         let a = one.get_archetype_descriptor(&arc);
         assert_eq!(true, a.is_none());
-        one.add_archetype( ArchetypeDescriptor{
+        one.add_archetype(ArchetypeDescriptor {
             archetype: Archetype::default(),
-            component_map: Vec::default(),
-            entities: 1 as usize
-        } );
+            map: HashMap::default(),
+            entities: 1 as usize,
+        });
 
         let a = one.get_archetype_descriptor(&arc);
-        let z = a.expect(" ").1.0 as usize;
+        let z = a.expect(" ").1 .0 as usize;
         assert_eq!(z, 0 as usize);
     }
 }

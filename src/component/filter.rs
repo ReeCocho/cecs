@@ -1,9 +1,17 @@
-use crate::archetype::Archetype;
+use crate::archetype::{
+    access::{DataBufferAccess, DataBufferSet, ReadDataBuffer, WriteDataBuffer},
+    archetypes::{ArchetypeDescriptor, Archetypes},
+    Archetype,
+};
+
+use std::any::TypeId;
 
 use super::Component;
 
 /// Describes a particular way to access a subset of entities based on what components they have.
 pub trait ComponentFilter {
+    type StorageSet: DataBufferSet;
+
     /// Creates an archetype which has every component within the filter.
     fn archetype() -> Archetype;
 
@@ -12,12 +20,23 @@ pub trait ComponentFilter {
 
     /// Creates an archetype which contains only components that are written.
     fn write_archetype() -> Archetype;
+
+    /// Given an archetype descriptor, generates an instance of the storage set for the filter.
+    ///
+    /// Panics if the filter isn't a subset of the descriptor.
+    fn make_storage_set(
+        descriptor: &ArchetypeDescriptor,
+        archetypes: &Archetypes,
+    ) -> Self::StorageSet;
 }
 
 /// Represents a request for access on a particular component (read or write).
 pub trait ComponentAccess {
     /// The component type being accessed.
     type Component: Component + 'static;
+
+    /// The type of data buffer access needed for the component access.
+    type Storage: DataBufferAccess;
 
     /// Indicates this access type needs mutable access.
     const MUTABLE: bool;
@@ -31,19 +50,35 @@ pub struct Write<T: Component> {
     _phantom: std::marker::PhantomData<T>,
 }
 
+impl<'a, C: Component + 'static> ComponentAccess for &'a C {
+    type Component = C;
+    type Storage = ReadDataBuffer<C>;
+    const MUTABLE: bool = false;
+}
+
+impl<'a, C: Component + 'static> ComponentAccess for &'a mut C {
+    type Component = C;
+    type Storage = WriteDataBuffer<C>;
+    const MUTABLE: bool = true;
+}
+
 impl<'a, C: Component + 'static> ComponentAccess for Read<C> {
     type Component = C;
+    type Storage = ReadDataBuffer<C>;
     const MUTABLE: bool = false;
 }
 
 impl<'a, C: Component + 'static> ComponentAccess for Write<C> {
     type Component = C;
+    type Storage = WriteDataBuffer<C>;
     const MUTABLE: bool = true;
 }
 
 macro_rules! component_filter_impl {
     ( $n:expr, $( $name:ident )+ ) => {
         impl<$($name: ComponentAccess,)*> ComponentFilter for ($($name,)*) {
+            type StorageSet = ($($name::Storage,)*);
+
             #[inline]
             fn archetype() -> Archetype {
                 let mut archetype = Archetype::default();
@@ -73,6 +108,17 @@ macro_rules! component_filter_impl {
                     }
                 )*
                 archetype
+            }
+
+            #[inline]
+            fn make_storage_set(descriptor: &ArchetypeDescriptor, archetypes: &Archetypes)
+                -> Self::StorageSet {
+                ($(
+                    $name::Storage::new(
+                        archetypes,
+                        *descriptor.map.get(&TypeId::of::<$name::Component>()
+                    ).expect("Provided archetype does not contain component in filter.")),
+                )*)
             }
         }
     }

@@ -29,7 +29,7 @@ use std::{
 ///
 /// Consider this code:
 ///
-/// ```
+/// ```ignore
 /// let lock = RwLock::new(5);
 ///
 /// let handle = lock.read().uwrap(),

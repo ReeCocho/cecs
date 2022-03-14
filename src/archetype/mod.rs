@@ -7,16 +7,9 @@ pub mod archetypes;
 pub mod buffer;
 
 /// Describes a set of component types.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Archetype {
     ids: Vec<TypeId>,
-}
-
-impl Default for Archetype {
-    fn default() -> Self {
-        // returns Archetype, with initialized vec array of 0
-        Archetype { ids: Vec::new() }
-    }
 }
 
 impl Archetype {
@@ -52,43 +45,20 @@ impl Archetype {
     /// be a fast operation (O(n) fast at least). The speed requirement is probably going to
     /// dictate the internal representation of the archetype.
     pub fn subset_of(&self, other: &Archetype) -> bool {
-        let mut x = 0;
-        let mut y = 0;
-
-        let a = &self.ids;
-        let b = &other.ids;
-        let first = a.len();
-        let second = b.len();
-
-        // Subset will be smaller or equal to superceding set
-        if first > second {
-            return false;
+        if self.ids.is_empty() {
+            return true;
         }
 
-        // while we can iterate through either list
-        while x < first && y < second {
-            // if they match, continue through both
-            if a[x] == b[y] {
-                x += 1;
-                y += 1;
-                continue;
-            }
-
-            // Since it's sorted, we continue with
-            // ... the smaller of the lists
-            if a[x] < b[y] {
-                x += 1;
-                continue;
-            }
-
-            if a[x] > b[y] {
-                y += 1;
-                continue;
+        let mut i = 0;
+        for ty in &other.ids {
+            if *ty == self.ids[i] {
+                i += 1;
+                if i == self.ids.len() {
+                    return true;
+                }
             }
         }
 
-        // return true if we traversed fully through
-        // ... our Vector, indicating all our items are included
-        x == first
+        false
     }
 }

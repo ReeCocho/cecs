@@ -1,5 +1,5 @@
 use crate::{
-    system::{query::QueryGenerator, GenericSystem, System},
+    system::{GenericSystem, System},
     world::World,
 };
 
@@ -11,7 +11,9 @@ pub struct Dispatcher {
 
 /// If you are unfamiliar with the builder pattern, considering taking a look at this link:
 /// https://rust-unofficial.github.io/patterns/patterns/creational/builder.html
-pub struct DispatcherBuilder {}
+pub struct DispatcherBuilder {
+    dispatcher: Dispatcher,
+}
 
 impl Dispatcher {
     #[inline]
@@ -23,14 +25,18 @@ impl Dispatcher {
     pub fn run(&mut self, world: &mut World) {
         // TODO: This runs the systems in serial. It should be parallelized.
         for system in &mut self.systems {
-            system.generic_tick(QueryGenerator::new());
+            system.generic_tick(&world.archetypes);
         }
     }
 }
 
 impl Default for DispatcherBuilder {
     fn default() -> Self {
-        todo!()
+        Self {
+            dispatcher: Dispatcher {
+                systems: Vec::default(),
+            },
+        }
     }
 }
 
@@ -41,11 +47,12 @@ impl DispatcherBuilder {
     }
 
     /// Adds a new system to the dispatcher. We should be able to
-    pub fn with_system(mut self, system: impl System) -> Self {
-        todo!()
+    pub fn with_system(mut self, system: impl System + 'static) -> Self {
+        self.dispatcher.systems.push(Box::new(system));
+        self
     }
 
-    pub fn build(mut self) -> Dispatcher {
-        todo!()
+    pub fn build(self) -> Dispatcher {
+        self.dispatcher
     }
 }

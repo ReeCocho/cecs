@@ -1,6 +1,6 @@
 pub mod query;
 
-use crate::component::filter::ComponentFilter;
+use crate::{archetype::archetypes::Archetypes, component::filter::ComponentFilter};
 
 use self::query::QueryGenerator;
 
@@ -16,11 +16,11 @@ pub trait System {
 }
 
 pub trait GenericSystem {
-    fn generic_tick(&mut self, gen: QueryGenerator);
+    fn generic_tick(&mut self, archetypes: &Archetypes);
 }
 
 impl<T: System> GenericSystem for T {
-    fn generic_tick(&mut self, gen: QueryGenerator) {
-        self.tick(gen);
+    fn generic_tick(&mut self, archetypes: &Archetypes) {
+        self.tick(QueryGenerator::new::<T::Components>(archetypes));
     }
 }
