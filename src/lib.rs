@@ -39,7 +39,7 @@ mod tests {
     }
 
     #[test]
-    fn checkSetComparisons() {
+    fn check_set_comparisons() {
         let mut one = Archetype::default();
         let mut two = Archetype::default();
         one.add_component_by_id(TypeId::of::<u32>());
