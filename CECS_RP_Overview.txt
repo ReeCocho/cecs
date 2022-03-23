@@ -1,0 +1,21 @@
+1. Introduction
+	- What is an ECS
+
+2. Related Work
+	- Legion Paper (Also other Rust ECS, SPECS, BevyECS)
+	- Difference between Storage Based ECS and Archetype ECS
+	- Usage outside of games (Radar simulation?)
+
+3. Our ECS Model
+	- Archetypes (Why it was chosen and data structure)
+	- What works and what didn't
+	- Scheduling algorithm
+
+4. Correctness
+	- Inspiration from Rust (XOR rule)
+	- PRW lock (maybe?)
+
+5. Performance
+	- Degenerate cases (A depends on B depends on C...)
+	- Comparison with serial
+	- Comparison with other ECS (https://github.com/rust-gamedev/ecs_bench_suite)
