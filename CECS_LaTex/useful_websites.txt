@@ -1,0 +1,4 @@
+no BS bibtex generator
+    https://truben.no/latex/bibtex/#
+latex symbol look up
+    http://detexify.kirelabs.org/classify.html
