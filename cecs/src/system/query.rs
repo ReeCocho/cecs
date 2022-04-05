@@ -11,7 +11,6 @@ pub struct QueryGenerator<'a> {
     archetypes: &'a Archetypes,
     all_components: Archetype,
     mut_components: Archetype,
-    read_components: Archetype,
 }
 
 /// A query is an iterator that holds the references to the components being accessed. Iteration
@@ -38,7 +37,6 @@ impl<'a> QueryGenerator<'a> {
         Self {
             archetypes,
             all_components: C::archetype(),
-            read_components: C::read_archetype(),
             mut_components: C::write_archetype(),
         }
     }
@@ -63,12 +61,8 @@ impl<C: ComponentFilter> Query<C> {
         // buffer sets with them and their corresponding entites.
         let mut sets = Vec::default();
         for descriptor in archetypes.descriptors() {
-            println!("{:?}", archetype.iter());
-            println!("{:?}", descriptor.archetype.iter());
-
             // Must be compatible
             if archetype.subset_of(&descriptor.archetype) {
-                println!("subset");
                 // Grab entity storage
                 let handle = archetypes.get_entity_buffers().get(descriptor.entities);
 
@@ -83,7 +77,6 @@ impl<C: ComponentFilter> Query<C> {
                     ));
                 }
             }
-            println!("===========");
         }
 
         // Grab the starting set and entity buffer

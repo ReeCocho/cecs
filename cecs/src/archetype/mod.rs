@@ -39,6 +39,31 @@ impl Archetype {
         self.ids.sort_unstable();
     }
 
+    /// Returns `true` if `self` contains any of the same types as `other`.
+    pub fn any_of(&self, other: &Archetype) -> bool {
+        if self.is_empty() || other.is_empty() {
+            return false;
+        }
+
+        let mut self_i = 0;
+        let mut other_i = 0;
+
+        while self_i != self.ids.len() && other_i != other.ids.len() {
+            let self_id = self.ids[self_i];
+            let other_id = other.ids[other_i];
+
+            if self_id == other_id {
+                return true;
+            } else if self_id < other_id {
+                self_i += 1;
+            } else {
+                other_i += 1;
+            }
+        }
+
+        false
+    }
+
     /// Compares two archetypes and returns `true` if this archetype is a subset of the `other`.
     ///
     /// That is, every component of this archetype is contained within the `other`. This needs to
