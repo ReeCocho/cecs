@@ -28,6 +28,8 @@ mod tests {
         type Components = (Read<ComponentA>, Write<ComponentB>);
 
         fn tick(&mut self, gen: crate::system::query::QueryGenerator) {
+            let mut count = 0;
+
             for (i, (_, (a, b))) in gen
                 .create::<(Read<ComponentA>, Read<ComponentB>)>()
                 .into_iter()
@@ -35,6 +37,7 @@ mod tests {
             {
                 assert!(a.0 == i as u32 + 1);
                 assert!(b.0 == i as u32 + 4);
+                count += 1;
             }
 
             for (i, (_, (a, b))) in gen
@@ -44,7 +47,10 @@ mod tests {
             {
                 assert!(a.0 == i as u32 + 1);
                 assert!(b.0 == i as u32 + 4);
+                count += 1;
             }
+
+            assert_eq!(count, 6);
         }
     }
 
@@ -54,6 +60,8 @@ mod tests {
         type Components = (Write<ComponentB>, Read<ComponentC>);
 
         fn tick(&mut self, gen: crate::system::query::QueryGenerator) {
+            let mut count = 0;
+
             for (i, (_, (b, c))) in gen
                 .create::<(Read<ComponentB>, Read<ComponentC>)>()
                 .into_iter()
@@ -61,6 +69,7 @@ mod tests {
             {
                 assert!(b.0 == i as u32 + 1);
                 assert!(c.0 == i as u32 + 4);
+                count += 1;
             }
 
             for (i, (_, (b, c))) in gen
@@ -70,7 +79,10 @@ mod tests {
             {
                 assert!(b.0 == i as u32 + 1);
                 assert!(c.0 == i as u32 + 4);
+                count += 1;
             }
+
+            assert_eq!(count, 6);
         }
     }
 
@@ -91,10 +103,11 @@ mod tests {
         ));
 
         // Create the dispatcher
-        let mut dispatcher = Dispatcher::builder()
-            .with_system(SystemA)
-            .with_system(SystemB)
-            .build();
+        let mut dispatcher = Dispatcher::builder();
+        dispatcher.with_system(SystemA, &[]);
+        dispatcher.with_system(SystemB, &[]);
+
+        let mut dispatcher = dispatcher.build();
 
         // Run the dispatcher
         dispatcher.run(&mut world);
