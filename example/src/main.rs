@@ -8,97 +8,21 @@ use cecs::{
     world::World,
 };
 
-struct ComponentA(u32);
-struct ComponentB(u32);
-struct ComponentC(u32);
-
-impl Component for ComponentA {}
-impl Component for ComponentB {}
-impl Component for ComponentC {}
-
-struct SystemA;
-
-impl System for SystemA {
-    type Components = (Read<ComponentA>, Write<ComponentB>);
-
-    fn tick(&mut self, gen: QueryGenerator) {
-        let mut count = 0;
-
-        for (i, (_, (a, b))) in gen
-            .create::<(Read<ComponentA>, Read<ComponentB>)>()
-            .into_iter()
-            .enumerate()
-        {
-            assert!(a.0 == i as u32 + 1);
-            assert!(b.0 == i as u32 + 4);
-            count += 1;
-        }
-
-        for (i, (_, (a, b))) in gen
-            .create::<(Read<ComponentA>, Write<ComponentB>)>()
-            .into_iter()
-            .enumerate()
-        {
-            assert!(a.0 == i as u32 + 1);
-            assert!(b.0 == i as u32 + 4);
-            count += 1;
-        }
-
-        assert_eq!(count, 6);
-    }
-}
-
-struct SystemB;
-
-impl System for SystemB {
-    type Components = (Write<ComponentB>, Read<ComponentC>);
-
-    fn tick(&mut self, gen: QueryGenerator) {
-        let mut count = 0;
-
-        for (i, (_, (b, c))) in gen
-            .create::<(Read<ComponentB>, Read<ComponentC>)>()
-            .into_iter()
-            .enumerate()
-        {
-            assert!(b.0 == i as u32 + 1);
-            assert!(c.0 == i as u32 + 4);
-            count += 1;
-        }
-
-        for (i, (_, (b, c))) in gen
-            .create::<(Write<ComponentB>, Read<ComponentC>)>()
-            .into_iter()
-            .enumerate()
-        {
-            assert!(b.0 == i as u32 + 1);
-            assert!(c.0 == i as u32 + 4);
-            count += 1;
-        }
-
-        assert_eq!(count, 6);
-    }
-}
-
 fn main() {
     // Create the world
     let mut world = World::new();
 
-    // Create entities
-    world.create((
-        vec![ComponentA(1), ComponentA(2), ComponentA(3)],
-        vec![ComponentB(4), ComponentB(5), ComponentB(6)],
-    ));
-
-    world.create((
-        vec![ComponentB(1), ComponentB(2), ComponentB(3)],
-        vec![ComponentC(4), ComponentC(5), ComponentC(6)],
-    ));
-
     // Create the dispatcher
-    let mut dispatcher = Dispatcher::builder().thread_count(4);
+    let mut dispatcher = Dispatcher::builder().thread_count(12);
     dispatcher.with_system(SystemA, &[]);
     dispatcher.with_system(SystemB, &[]);
+    dispatcher.with_system(SystemC, &[]);
+    dispatcher.with_system(SystemD, &[]);
+    dispatcher.with_system(SystemE, &[]);
+    dispatcher.with_system(SystemF, &[]);
+    dispatcher.with_system(SystemG, &[]);
+    dispatcher.with_system(SystemH, &[]);
+    dispatcher.with_system(SystemI, &[]);
 
     let mut dispatcher = dispatcher.build();
 
@@ -107,3 +31,46 @@ fn main() {
         dispatcher.run(&mut world);
     }
 }
+
+/// Helper macro to create components
+macro_rules! new_component {
+    ($name:ident) => {
+        struct $name(u32);
+        impl Component for $name {}
+    };
+}
+
+/// Helper macro to create systems
+macro_rules! new_system {
+    ($name:ident, $( $comp_w:ident )*, $( $comp_r:ident )* ) => {
+        struct $name;
+
+        impl System for $name {
+            type Components = ( $(Write<$comp_w>,)* $(Read<$comp_r>,)* );
+
+            fn tick(&mut self, _: QueryGenerator) {
+
+            }
+        }
+    };
+}
+
+new_component! { ComponentA }
+new_component! { ComponentB }
+new_component! { ComponentC }
+new_component! { ComponentD }
+new_component! { ComponentE }
+new_component! { ComponentF }
+new_component! { ComponentG }
+new_component! { ComponentH }
+new_component! { ComponentI }
+
+new_system! { SystemA, ComponentA, ComponentC ComponentD ComponentF ComponentG ComponentH ComponentI }
+new_system! { SystemB, ComponentB, ComponentD ComponentG ComponentH ComponentI }
+new_system! { SystemC, ComponentC, ComponentA ComponentD ComponentH ComponentI }
+new_system! { SystemD, ComponentD, ComponentA ComponentC ComponentF ComponentG }
+new_system! { SystemE, ComponentE, ComponentG ComponentH }
+new_system! { SystemF, ComponentF, ComponentA ComponentD ComponentH }
+new_system! { SystemG, ComponentG, ComponentA ComponentB ComponentD ComponentE ComponentG ComponentH ComponentI }
+new_system! { SystemH, ComponentH, ComponentA ComponentB ComponentC ComponentE ComponentF ComponentG ComponentI }
+new_system! { SystemI, ComponentI, ComponentA ComponentB ComponentC ComponentG ComponentH }
