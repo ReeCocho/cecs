@@ -49,7 +49,7 @@ macro_rules! new_system {
             type Components = ( $(Write<$comp_w>,)* $(Read<$comp_r>,)* );
 
             fn tick(&mut self, _: QueryGenerator) {
-
+                
             }
         }
     };

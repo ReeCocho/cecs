@@ -167,12 +167,12 @@ impl Dispatcher {
                 } else {
                     // Find the maximum amongst all the cliques
                     let mut max = 0;
-                    let mut max_len = max_cliques[0].len();
+                    let mut max_len = max_cliques[0].count_ones();
 
                     for (i, clique) in max_cliques.iter().enumerate().skip(1) {
-                        if clique.len() > max_len {
+                        if clique.count_ones() > max_len {
                             max = i;
-                            max_len = clique.len();
+                            max_len = clique.count_ones();
                         }
                     }
 
