@@ -136,6 +136,10 @@ component_filter_impl! { 9, A B C D E F G H I }
 component_filter_impl! { 10, A B C D E F G H I J }
 component_filter_impl! { 11, A B C D E F G H I J K }
 component_filter_impl! { 12, A B C D E F G H I J K L }
+component_filter_impl! { 13, A B C D E F G H I J K L M }
+component_filter_impl! { 14, A B C D E F G H I J K L M N }
+component_filter_impl! { 15, A B C D E F G H I J K L M N O }
+component_filter_impl! { 16, A B C D E F G H I J K L M N O P }
 
 #[cfg(test)]
 mod tests {

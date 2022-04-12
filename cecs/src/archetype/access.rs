@@ -14,7 +14,7 @@ use unsafe_unwrap::*;
 use super::archetypes::Archetypes;
 
 /// A set of data buffers used to access components within a query.
-pub trait DataBufferSet: Default {
+pub trait DataBufferSet {
     type Filter: ComponentFilter;
 
     fn len(&self) -> usize;
@@ -111,12 +111,12 @@ impl<T: Component + 'static> DataBufferAccess for ReadDataBuffer<T> {
         self.end == self.ptr
     }
 
-    #[inline]
+    #[inline(always)]
     fn is_valid(&self, idx: usize) -> bool {
         unsafe { idx < self.end.as_ptr().offset_from(self.ptr.as_ptr()) as usize }
     }
 
-    #[inline]
+    #[inline(always)]
     unsafe fn fetch(&mut self, idx: usize) -> Self::ComponentAccess {
         self.ptr.as_ptr().add(idx).as_ref().unsafe_unwrap()
     }
@@ -175,12 +175,12 @@ impl<T: Component + 'static> DataBufferAccess for WriteDataBuffer<T> {
         self.end == self.ptr
     }
 
-    #[inline]
+    #[inline(always)]
     fn is_valid(&self, idx: usize) -> bool {
         unsafe { idx < self.end.as_ptr().offset_from(self.ptr.as_ptr()) as usize }
     }
 
-    #[inline]
+    #[inline(always)]
     unsafe fn fetch(&mut self, idx: usize) -> Self::ComponentAccess {
         self.ptr.as_ptr().add(idx).as_mut().unsafe_unwrap()
     }
@@ -216,12 +216,12 @@ macro_rules! data_buffer_set_impl {
                 self.0.is_empty()
             }
 
-            #[inline]
+            #[inline(always)]
             fn is_valid(&self, idx: usize) -> bool {
                 self.0.is_valid(idx)
             }
 
-            #[inline]
+            #[inline(always)]
             unsafe fn fetch(&mut self, idx: usize) -> Self::Filter {
                 paste! {
                     #[allow(non_snake_case)]
@@ -248,3 +248,7 @@ data_buffer_set_impl! { 9, A B C D E F G H I }
 data_buffer_set_impl! { 10, A B C D E F G H I J }
 data_buffer_set_impl! { 11, A B C D E F G H I J K }
 data_buffer_set_impl! { 12, A B C D E F G H I J K L }
+data_buffer_set_impl! { 13, A B C D E F G H I J K L M }
+data_buffer_set_impl! { 14, A B C D E F G H I J K L M N }
+data_buffer_set_impl! { 15, A B C D E F G H I J K L M N O }
+data_buffer_set_impl! { 16, A B C D E F G H I J K L M N O P }

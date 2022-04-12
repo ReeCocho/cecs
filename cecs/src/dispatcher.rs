@@ -1,11 +1,11 @@
 use bitvec::prelude::*;
+use crossbeam_channel::{Receiver, Sender};
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use std::{
     collections::{HashMap, HashSet},
     ops::BitAnd,
-    ops::{BitOr, BitXor},
+    ops::{BitOr, BitXor, Not},
     ptr::NonNull,
-    sync::mpsc::{Receiver, Sender},
 };
 
 use crate::{
@@ -35,6 +35,8 @@ pub struct Dispatcher {
     /// Cache that maps a set of systems that we want to run in parallel with a subset of those
     /// systems that are actually compatible. Each bit in the `BitArr` represents a system.
     cache: HashMap<SystemSet, SystemSet>,
+    /// Cached memory allocation for the Bron-Kerbosch algorithm so we don't have to reallocate
+    bk_cache: Vec<SystemSet>,
 }
 
 /// Describes the state of a system in the dispatcher.
@@ -140,18 +142,12 @@ impl Dispatcher {
             let all_systems = running_set.bitor(pending_set);
 
             let to_run = if let Some(result) = self.cache.get(&all_systems) {
-                let mut result = *result;
-
-                // Get rid of the running systems
-                for i in running_set.iter_ones() {
-                    result.set(i, false);
-                }
-
-                result
+                (*result) & (running_set.not())
             }
             // Not in the cache. Need to perform Bron-Kerbosch
             else {
-                let mut max_cliques = Vec::default();
+                self.bk_cache.clear();
+                let mut max_cliques = &mut self.bk_cache;
 
                 bron_kerbosch(
                     running_set,
@@ -293,7 +289,7 @@ impl DispatcherBuilder {
         }
 
         // Create channels
-        let (thread_sender, finished) = std::sync::mpsc::channel();
+        let (thread_sender, finished) = crossbeam_channel::bounded(self.systems.len());
 
         Dispatcher {
             systems: self.systems,
@@ -305,6 +301,7 @@ impl DispatcherBuilder {
             thread_sender,
             finished,
             cache: HashMap::default(),
+            bk_cache: Vec::default(),
         }
     }
 }
@@ -323,15 +320,12 @@ fn bron_kerbosch(
     }
 
     let px = p.bitor(x);
-    let pivot = px.first_one().expect("no pivot found");
+    let pivot = px.first_one().unwrap();
 
     let mut nh_pivot = compatibility[pivot].clone();
     nh_pivot.set(pivot, false);
 
-    let mut p_removing_nh_pivot = p;
-    for i in nh_pivot.iter_ones() {
-        p_removing_nh_pivot.set(i, false);
-    }
+    let p_removing_nh_pivot = p & (nh_pivot.not());
 
     for v in p_removing_nh_pivot.iter_ones() {
         let mut nh_v = compatibility[v].clone();

@@ -168,3 +168,17 @@ component_pack_impl! { 9, A B C D E F G H I }
 component_pack_impl! { 10, A B C D E F G H I J }
 component_pack_impl! { 11, A B C D E F G H I J K }
 component_pack_impl! { 12, A B C D E F G H I J K L }
+component_pack_impl! { 13, A B C D E F G H I J K L M }
+component_pack_impl! { 14, A B C D E F G H I J K L M N }
+component_pack_impl! { 15, A B C D E F G H I J K L M N O }
+component_pack_impl! { 16, A B C D E F G H I J K L M N O P }
+component_pack_impl! { 17, A B C D E F G H I J K L M N O P Q }
+component_pack_impl! { 18, A B C D E F G H I J K L M N O P Q R }
+component_pack_impl! { 19, A B C D E F G H I J K L M N O P Q R S }
+component_pack_impl! { 20, A B C D E F G H I J K L M N O P Q R S T }
+component_pack_impl! { 21, A B C D E F G H I J K L M N O P Q R S T U }
+component_pack_impl! { 22, A B C D E F G H I J K L M N O P Q R S T U V }
+component_pack_impl! { 23, A B C D E F G H I J K L M N O P Q R S T U V W }
+component_pack_impl! { 24, A B C D E F G H I J K L M N O P Q R S T U V W X }
+component_pack_impl! { 25, A B C D E F G H I J K L M N O P Q R S T U V W X Y }
+component_pack_impl! { 26, A B C D E F G H I J K L M N O P Q R S T U V W X Y Z }

@@ -104,6 +104,7 @@ impl<C: ComponentFilter> Query<C> {
 impl<C: ComponentFilter> Iterator for Query<C> {
     type Item = (Entity, <C::StorageSet as DataBufferSet>::Filter);
 
+    #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
         // Check if we have a working set
         if let Some((entities, set)) = &mut self.set {
@@ -151,7 +152,7 @@ impl FastEntityIterator {
         }
     }
 
-    #[inline]
+    #[inline(always)]
     unsafe fn fetch(&mut self, idx: usize) -> Entity {
         *self.ptr.as_ptr().add(idx)
     }
