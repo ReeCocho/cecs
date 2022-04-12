@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 cecs = { path = "../cecs/" }
 bevy_ecs = "0.6"
+num_cpus = "1.13"
+bevy_tasks = "0.6"
