@@ -10,3 +10,11 @@ cecs = { path = "../cecs/" }
 bevy_ecs = "0.6"
 num_cpus = "1.13"
 bevy_tasks = "0.6"
+
+[profile.dev]
+opt-level = 3
+lto = true
+
+[profile.release]
+lto = true
+panic = 'abort'

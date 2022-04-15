@@ -6,6 +6,10 @@ use std::{
     ops::BitAnd,
     ops::{BitOr, BitXor, Not},
     ptr::NonNull,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
 };
 
 use crate::{
@@ -28,15 +32,20 @@ pub struct Dispatcher {
     thread_pool: ThreadPool,
     /// Maps each system to a `SystemSet` of compatible systems.
     compatibility: Vec<SystemSet>,
-    /// Receiver that threads use to notify the main thread that a system has finished running.
-    finished: Receiver<usize>,
-    /// Sender that threads use to notify the main thread that a system has finished running.
-    thread_sender: Sender<usize>,
     /// Cache that maps a set of systems that we want to run in parallel with a subset of those
     /// systems that are actually compatible. Each bit in the `BitArr` represents a system.
-    cache: HashMap<SystemSet, SystemSet>,
-    /// Cached memory allocation for the Bron-Kerbosch algorithm so we don't have to reallocate
-    bk_cache: Vec<SystemSet>,
+    cache: HashMap<SystemSet, Vec<usize>>,
+    cached_buffers: CachedBuffers,
+}
+
+/// Cached buffers so we don't have to reallocate.
+#[derive(Default)]
+struct CachedBuffers {
+    bron_kerbosch: Vec<SystemSet>,
+    to_remove: Vec<usize>,
+    pending: HashSet<usize>,
+    finished: Vec<usize>,
+    running: HashSet<usize>,
 }
 
 /// Describes the state of a system in the dispatcher.
@@ -45,6 +54,10 @@ struct SystemStage {
     read_types: Archetype,
     write_types: Archetype,
     all_types: Archetype,
+    /// Receiver that threads use to notify the main thread that the system has finished running.
+    finished: Receiver<()>,
+    /// Sender that threads use to notify the main thread that the system has finished running.
+    thread_sender: Sender<()>,
     /// Number of dependencies this system has.
     dependency_count: usize,
     /// Number of dependencies the system is waiting on currently.
@@ -60,7 +73,7 @@ struct SystemPacket {
     /// Archetypes the system must use.
     archetypes: *const Archetypes,
     /// Sender that threads use to notify the main thread that a system has finished running.
-    thread_sender: Sender<usize>,
+    thread_sender: Sender<()>,
     /// Index of the system to return when the system finishes running.
     idx: usize,
 }
@@ -85,9 +98,13 @@ impl Dispatcher {
 
     /// Runs one tick of every system within the dispatcher using a given world.
     pub fn run(&mut self, world: &mut World) {
-        let mut pending = HashSet::<usize>::default();
-        let mut finished = Vec::default();
-        let mut running = HashSet::<usize>::default();
+        let pending = &mut self.cached_buffers.pending;
+        let finished = &mut self.cached_buffers.finished;
+        let running = &mut self.cached_buffers.running;
+
+        pending.clear();
+        finished.clear();
+        running.clear();
 
         // Setup: reset waiting counters. Systems with no dependencies are pending.
         for (i, system) in self.systems.iter_mut().enumerate() {
@@ -101,15 +118,25 @@ impl Dispatcher {
         // Loop until all systems have finished
         while finished.len() != self.systems.len() {
             // Determine systems that have finished running
-            for system_idx in self.finished.try_iter() {
-                running.remove(&system_idx);
-                finished.push(system_idx);
+            let to_remove = &mut self.cached_buffers.to_remove;
+            to_remove.clear();
+
+            for system in running.iter() {
+                let idx = *system;
+
+                // Check to see if the system has finished running
+                if self.systems[idx].finished.try_recv().is_err() {
+                    continue;
+                }
+
+                to_remove.push(idx);
+                finished.push(idx);
 
                 // Notify dependencies of the completion
                 // NOTE: Borrow checker bullsh*t means we can't iterate over `dependents` while
                 // modifying `systems` because of mutable/immutable borrow.
-                for i in 0..self.systems[system_idx].dependents.len() {
-                    let dependent_idx = self.systems[system_idx].dependents[i];
+                for i in 0..self.systems[idx].dependents.len() {
+                    let dependent_idx = self.systems[idx].dependents[i];
                     let mut dependent = &mut self.systems[dependent_idx];
 
                     dependent.waiting_on -= 1;
@@ -121,6 +148,10 @@ impl Dispatcher {
                 }
             }
 
+            for idx in to_remove {
+                running.remove(&idx);
+            }
+
             // If there are no new pending systems, we loop
             if pending.is_empty() {
                 continue;
@@ -130,11 +161,11 @@ impl Dispatcher {
             let mut running_set: SystemSet = BitArray::ZERO;
             let mut pending_set: SystemSet = BitArray::ZERO;
 
-            for idx in &running {
+            for idx in running.iter() {
                 running_set.set(*idx, true);
             }
 
-            for idx in &pending {
+            for idx in pending.iter() {
                 pending_set.set(*idx, true);
             }
 
@@ -142,12 +173,12 @@ impl Dispatcher {
             let all_systems = running_set.bitor(pending_set);
 
             let to_run = if let Some(result) = self.cache.get(&all_systems) {
-                (*result) & (running_set.not())
+                result
             }
             // Not in the cache. Need to perform Bron-Kerbosch
             else {
-                self.bk_cache.clear();
-                let mut max_cliques = &mut self.bk_cache;
+                let mut max_cliques = &mut self.cached_buffers.bron_kerbosch;
+                max_cliques.clear();
 
                 bron_kerbosch(
                     running_set,
@@ -177,15 +208,25 @@ impl Dispatcher {
 
                 // Get rid of the running systems
                 result = result.bitxor(running_set);
+                let mut to_cache = Vec::with_capacity(result.count_ones());
+                for i in result.iter_ones() {
+                    to_cache.push(i);
+                }
 
                 // Add to the cache
-                self.cache.insert(all_systems, result);
-
-                result
+                self.cache.insert(all_systems, to_cache);
+                self.cache.get(&all_systems).unwrap()
             };
 
             // Send all compatible systems to the thread pool
-            for idx in to_run.iter_ones() {
+            for system in to_run {
+                let idx = *system;
+
+                // Ignore if already running
+                if running.contains(&idx) {
+                    continue;
+                }
+
                 running.insert(idx);
                 pending.remove(&idx);
 
@@ -194,7 +235,7 @@ impl Dispatcher {
                         NonNull::new_unchecked(self.systems[idx].system.as_mut() as *mut _)
                     },
                     archetypes: (&world.archetypes) as *const _,
-                    thread_sender: self.thread_sender.clone(),
+                    thread_sender: self.systems[idx].thread_sender.clone(),
                     idx,
                 };
 
@@ -209,7 +250,7 @@ impl Dispatcher {
                     packet.system.as_mut().generic_tick(archetypes);
 
                     // Notify the main thread that the system has completed
-                    packet.thread_sender.send(packet.idx).unwrap();
+                    packet.thread_sender.send(()).unwrap();
                 });
             }
         }
@@ -252,6 +293,9 @@ impl DispatcherBuilder {
             self.systems[dependency.0].dependents.push(id.0);
         }
 
+        // Create channels
+        let (thread_sender, finished) = crossbeam_channel::bounded(1);
+
         // Add the stage
         self.systems.push(SystemStage {
             system: Box::new(system),
@@ -261,6 +305,8 @@ impl DispatcherBuilder {
             dependency_count: dependencies.len(),
             waiting_on: dependencies.len(),
             dependents: Vec::default(),
+            thread_sender,
+            finished,
         });
 
         id
@@ -288,20 +334,15 @@ impl DispatcherBuilder {
             compatibility.push(compatible);
         }
 
-        // Create channels
-        let (thread_sender, finished) = crossbeam_channel::bounded(self.systems.len());
-
         Dispatcher {
             systems: self.systems,
             thread_pool: ThreadPoolBuilder::new()
                 .num_threads(self.thread_count)
                 .build()
-                .expect("unable to create thread pool"),
+                .unwrap(),
             compatibility,
-            thread_sender,
-            finished,
             cache: HashMap::default(),
-            bk_cache: Vec::default(),
+            cached_buffers: CachedBuffers::default(),
         }
     }
 }

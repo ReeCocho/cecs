@@ -12,7 +12,7 @@ use cecs::{
     system::{query::QueryGenerator, System},
 };
 
-const ITER_COUNT: usize = 250_000;
+const ITER_COUNT: usize = 500_000;
 
 fn main() {
     let cecs = cecs_bench();
