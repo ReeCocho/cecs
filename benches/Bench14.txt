@@ -1,0 +1,214 @@
+use std::time::{Duration, Instant};
+
+use bevy_ecs::prelude::*;
+
+use bevy_tasks::{ComputeTaskPool, TaskPoolBuilder};
+use cecs::{
+    component::{
+        filter::{Read, Write},
+        Component,
+    },
+    dispatcher::Dispatcher,
+    system::{query::QueryGenerator, System},
+};
+
+fn main() {
+    let iteration_var: Vec<usize> = vec![1_000, 100_000, 1_000_000];
+
+    println!("Bevy vs CECS benchmark");
+    for i in &iteration_var
+    {
+        compare_bench(*i);
+    }
+    println!();
+    println!("Thread runtime benchmark");
+    for i in &iteration_var
+    {
+        thread_bench(*i);
+        println!();
+    }
+}
+
+/// test to see how long it takes to run depending on num of threads
+fn thread_bench(num_iterations: usize)
+{
+    let mut i = 1;
+    println!("Time To Run with {} iterations:", num_iterations);
+    while i <= 8
+    {
+        let time = cecs_bench(num_iterations, i);
+        println!("{} threads, {} ms", i, time.as_millis());
+        i *= 2;
+    }
+}
+
+/// check runtimes for bevy vs cecs
+fn compare_bench(num_iterations: usize)
+{
+    //let t_count = num_cpus::get();
+    let t_count: usize = 4;
+    let cecs = cecs_bench(num_iterations, t_count);
+    let bevy = bevy_bench(num_iterations, t_count);
+    let c2 = cecs_bench(num_iterations, t_count);
+    let b2 = bevy_bench(num_iterations, t_count);
+    let c3 = cecs_bench(num_iterations, t_count);
+    let b3 = bevy_bench(num_iterations, t_count);
+
+    println!("\nIterations:  {}", num_iterations);
+    println!("cecs : {}ms, {}ms, {}ms", cecs.as_millis(), c2.as_millis(), c3.as_millis());
+    println!("bevy : {}ms, {}ms, {}ms", bevy.as_millis(), b2.as_millis(), b3.as_millis());
+}
+
+fn cecs_bench(num_iter: usize, num_thread: usize) -> Duration {
+    let mut world = cecs::world::World::new();
+
+    // Create the dispatcher
+    let mut dispatcher = Dispatcher::builder().thread_count(num_thread);
+
+    // INSERT HERE ------------------------
+    
+    dispatcher.with_system(System0, &[]);
+    dispatcher.with_system(System1, &[]);
+    dispatcher.with_system(System2, &[]);
+    dispatcher.with_system(System3, &[]);
+    dispatcher.with_system(System4, &[]);
+    dispatcher.with_system(System5, &[]);
+    dispatcher.with_system(System6, &[]);
+    dispatcher.with_system(System7, &[]);
+    dispatcher.with_system(System8, &[]);
+    dispatcher.with_system(System9, &[]);
+    dispatcher.with_system(System10, &[]);
+    dispatcher.with_system(System11, &[]);
+    dispatcher.with_system(System12, &[]);
+    dispatcher.with_system(System13, &[]);
+    dispatcher.with_system(System14, &[]);
+
+
+    // -------------------------------------
+
+    let mut dispatcher = dispatcher.build();
+
+    let start = Instant::now();
+
+    for _ in 0..num_iter {
+        dispatcher.run(&mut world);
+    }
+
+    Instant::now().duration_since(start)
+}
+
+fn bevy_bench(iteration: usize, num_thread: usize) -> Duration {
+    let mut world = World::new();
+    world.insert_resource(ComputeTaskPool(TaskPoolBuilder::new().num_threads(num_thread).build()));
+
+    let mut schedule = Schedule::default();
+    schedule.add_stage(
+        "base_stage",
+        SystemStage::parallel()
+        // INSERT HERE ------------------------
+        .with_system(System0::bevy_system)
+	.with_system(System1::bevy_system)
+        .with_system(System2::bevy_system)
+        .with_system(System3::bevy_system)
+        .with_system(System4::bevy_system)
+        .with_system(System5::bevy_system)
+        .with_system(System6::bevy_system)
+        .with_system(System7::bevy_system)
+        .with_system(System8::bevy_system)
+        .with_system(System9::bevy_system)
+        .with_system(System10::bevy_system)
+        .with_system(System11::bevy_system)
+        .with_system(System12::bevy_system)
+        .with_system(System13::bevy_system)
+        .with_system(System14::bevy_system)
+	
+
+        // -------------------------------------
+    );
+
+    let start = Instant::now();
+
+    for _ in 0..iteration {
+        schedule.run(&mut world);
+    }
+
+    Instant::now().duration_since(start)
+}
+
+/// Helper macro to create components
+macro_rules! new_component {
+    ($name:ident) => {
+        #[derive(Component, Copy, Clone)]
+        struct $name(u32);
+
+        impl Component for $name {}
+    };
+}
+
+/// Helper macro to create systems
+macro_rules! new_system {
+    ($name:ident, $( $comp_w:ident )*, $( $comp_r:ident )* ) => {
+        struct $name;
+
+        impl $name {
+            fn bevy_system(_: Query<( $(&mut $comp_w,)* $(&$comp_r,)* )>) {
+                
+            }
+        }
+
+        impl System for $name {
+            type Components = ( $(Write<$comp_w>,)* $(Read<$comp_r>,)* );
+
+            fn tick(&mut self, _: QueryGenerator) {
+                
+            }
+        }
+    };
+}
+
+// every component not connected to
+
+new_component! { Component0 }
+new_component! { Component1 }
+new_component! { Component2 }
+new_component! { Component3 }
+new_component! { Component4 }
+new_component! { Component5 }
+new_component! { Component6 }
+new_component! { Component7 }
+new_component! { Component8 }
+new_component! { Component9 }
+new_component! { Component10 }
+new_component! { Component11 }
+new_component! { Component12 }
+new_component! { Component13 }
+new_component! { Component14 }
+
+new_system! { System0, Component0, Component1 Component2 Component3 Component4 Component6 Component7 Component8 Component9 Component10 Component11 Component14 }
+new_system! { System1, Component1, Component0 Component2 Component3 Component4 Component5 Component6 Component7 Component8 Component9 Component10 Component11 Component12 Component13 Component14 }
+new_system! { System2, Component2, Component0 Component1 Component3 Component4 Component5 Component6 Component7 Component8 Component9 Component10 Component11 Component13 Component14 }
+new_system! { System3, Component3, Component0 Component1 Component2 Component4 Component6 Component7 Component8 Component9 Component10 Component11 Component12 Component13 }
+new_system! { System4, Component4, Component0 Component1 Component2 Component3 Component5 Component6 Component7 Component8 Component9 Component12 Component13 }
+new_system! { System5, Component5, Component1 Component2 Component4 Component6 Component7 Component8 Component9 Component10 Component11 Component12 Component13 Component14 }
+new_system! { System6, Component6, Component0 Component1 Component2 Component3 Component4 Component5 Component7 Component8 Component9 Component10 Component11 Component12 Component14 }
+new_system! { System7, Component7, Component0 Component1 Component2 Component3 Component4 Component5 Component6 Component8 Component9 Component10 Component11 Component12 Component13 Component14 }
+new_system! { System8, Component8, Component0 Component1 Component2 Component3 Component4 Component5 Component6 Component7 Component9 Component10 Component11 Component12 Component13 Component14 }
+new_system! { System9, Component9, Component0 Component1 Component2 Component3 Component4 Component5 Component6 Component7 Component8 Component10 Component11 Component12 Component13 Component14 }
+new_system! { System10, Component10, Component0 Component1 Component2 Component3 Component5 Component6 Component7 Component8 Component9 Component11 Component12 Component13 Component14 }
+new_system! { System11, Component11, Component0 Component1 Component2 Component3 Component5 Component6 Component7 Component8 Component9 Component10 Component13 Component14 }
+new_system! { System12, Component12, Component1 Component3 Component4 Component5 Component6 Component7 Component8 Component9 Component10 Component13 Component14 }
+new_system! { System13, Component13, Component1 Component2 Component3 Component4 Component5 Component7 Component8 Component9 Component10 Component11 Component12 Component14 }
+new_system! { System14, Component14, Component0 Component1 Component2 Component5 Component6 Component7 Component8 Component9 Component10 Component11 Component12 Component13 }
+
+/*
+
+
+new_system! { System0, Component0, Component0 Component1 Component2 Component3 Component4 Component5 Component6 }
+new_system! { System1, Component0, Component0 Component1 Component2 Component3 Component4 Component5 Component6 }
+new_system! { System2, Component0, Component0 Component1 Component2 Component3 Component4 Component5 Component6 }
+new_system! { System3, Component0, Component0 Component1 Component2 Component3 Component4 Component5 Component6 }
+new_system! { System4, Component0, Component0 Component1 Component2 Component3 Component4 Component5 Component6 }
+new_system! { System5, Component0, Component0 Component1 Component2 Component3 Component4 Component5 Component6 }
+new_system! { System6, Component0, Component0 Component1 Component2 Component3 Component4 Component5 Component6 }
+
+*/

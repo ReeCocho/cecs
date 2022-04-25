@@ -13,7 +13,7 @@ use cecs::{
 use specs::rayon::{ThreadPool, ThreadPoolBuilder};
 
 const ITER_COUNT: usize = 500_000;
-const THREAD_COUNT: usize = 4;
+const THREAD_COUNT: usize = 8;
 
 fn main() {
     let cecs = cecs_bench();

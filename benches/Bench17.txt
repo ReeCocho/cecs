@@ -1,0 +1,551 @@
+use std::time::{Duration, Instant};
+
+use bevy_ecs::prelude::*;
+
+use bevy_tasks::{ComputeTaskPool, TaskPoolBuilder};
+use cecs::{
+    component::{
+        filter::{Read, Write},
+        Component,
+    },
+    dispatcher::Dispatcher,
+    system::{query::QueryGenerator, System},
+};
+
+fn main() {
+    let iteration_var: Vec<usize> = vec![1_000, 100_000];
+
+    println!("Bevy vs CECS benchmark");
+    for i in &iteration_var
+    {
+        compare_bench(*i);
+    }
+    println!();
+    println!("Thread runtime benchmark");
+    for i in &iteration_var
+    {
+        thread_bench(*i);
+        println!();
+    }
+}
+
+/// test to see how long it takes to run depending on num of threads
+fn thread_bench(num_iterations: usize)
+{
+    let mut i = 1;
+    println!("Time To Run with {} iterations:", num_iterations);
+    while i <= 8
+    {
+        let time = cecs_bench(num_iterations, i);
+        println!("{} threads, {} ms", i, time.as_millis());
+        i *= 2;
+    }
+}
+
+/// check runtimes for bevy vs cecs
+fn compare_bench(num_iterations: usize)
+{
+    //let t_count = num_cpus::get();
+    let t_count: usize = 4;
+    let cecs = cecs_bench(num_iterations, t_count);
+    let bevy = bevy_bench(num_iterations, t_count);
+    let c2 = cecs_bench(num_iterations, t_count);
+    let b2 = bevy_bench(num_iterations, t_count);
+    let c3 = cecs_bench(num_iterations, t_count);
+    let b3 = bevy_bench(num_iterations, t_count);
+
+    println!("\nIterations:  {}", num_iterations);
+    println!("cecs : {}ms, {}ms, {}ms", cecs.as_millis(), c2.as_millis(), c3.as_millis());
+    println!("bevy : {}ms, {}ms, {}ms", bevy.as_millis(), b2.as_millis(), b3.as_millis());
+}
+
+fn cecs_bench(num_iter: usize, num_thread: usize) -> Duration {
+    let mut world = cecs::world::World::new();
+
+    // Create the dispatcher
+    let mut dispatcher = Dispatcher::builder().thread_count(num_thread);
+
+    // INSERT HERE ------------------------
+    
+    
+dispatcher.with_system(System0, &[]);
+dispatcher.with_system(System1, &[]);
+dispatcher.with_system(System2, &[]);
+dispatcher.with_system(System3, &[]);
+dispatcher.with_system(System4, &[]);
+dispatcher.with_system(System5, &[]);
+dispatcher.with_system(System6, &[]);
+dispatcher.with_system(System7, &[]);
+dispatcher.with_system(System8, &[]);
+dispatcher.with_system(System9, &[]);
+dispatcher.with_system(System10, &[]);
+dispatcher.with_system(System11, &[]);
+dispatcher.with_system(System12, &[]);
+dispatcher.with_system(System13, &[]);
+dispatcher.with_system(System14, &[]);
+dispatcher.with_system(System15, &[]);
+dispatcher.with_system(System16, &[]);
+dispatcher.with_system(System17, &[]);
+dispatcher.with_system(System18, &[]);
+dispatcher.with_system(System19, &[]);
+dispatcher.with_system(System20, &[]);
+dispatcher.with_system(System21, &[]);
+dispatcher.with_system(System22, &[]);
+dispatcher.with_system(System23, &[]);
+dispatcher.with_system(System24, &[]);
+dispatcher.with_system(System25, &[]);
+dispatcher.with_system(System26, &[]);
+dispatcher.with_system(System27, &[]);
+dispatcher.with_system(System28, &[]);
+dispatcher.with_system(System29, &[]);
+dispatcher.with_system(System30, &[]);
+dispatcher.with_system(System31, &[]);
+dispatcher.with_system(System32, &[]);
+dispatcher.with_system(System33, &[]);
+dispatcher.with_system(System34, &[]);
+dispatcher.with_system(System35, &[]);
+dispatcher.with_system(System36, &[]);
+dispatcher.with_system(System37, &[]);
+dispatcher.with_system(System38, &[]);
+dispatcher.with_system(System39, &[]);
+dispatcher.with_system(System40, &[]);
+dispatcher.with_system(System41, &[]);
+dispatcher.with_system(System42, &[]);
+dispatcher.with_system(System43, &[]);
+dispatcher.with_system(System44, &[]);
+dispatcher.with_system(System45, &[]);
+dispatcher.with_system(System46, &[]);
+dispatcher.with_system(System47, &[]);
+dispatcher.with_system(System48, &[]);
+dispatcher.with_system(System49, &[]);
+dispatcher.with_system(System50, &[]);
+dispatcher.with_system(System51, &[]);
+dispatcher.with_system(System52, &[]);
+dispatcher.with_system(System53, &[]);
+dispatcher.with_system(System54, &[]);
+dispatcher.with_system(System55, &[]);
+dispatcher.with_system(System56, &[]);
+dispatcher.with_system(System57, &[]);
+dispatcher.with_system(System58, &[]);
+dispatcher.with_system(System59, &[]);
+dispatcher.with_system(System60, &[]);
+dispatcher.with_system(System61, &[]);
+dispatcher.with_system(System62, &[]);
+dispatcher.with_system(System63, &[]);
+dispatcher.with_system(System64, &[]);
+dispatcher.with_system(System65, &[]);
+dispatcher.with_system(System66, &[]);
+dispatcher.with_system(System67, &[]);
+dispatcher.with_system(System68, &[]);
+dispatcher.with_system(System69, &[]);
+dispatcher.with_system(System70, &[]);
+dispatcher.with_system(System71, &[]);
+dispatcher.with_system(System72, &[]);
+dispatcher.with_system(System73, &[]);
+dispatcher.with_system(System74, &[]);
+dispatcher.with_system(System75, &[]);
+dispatcher.with_system(System76, &[]);
+dispatcher.with_system(System77, &[]);
+dispatcher.with_system(System78, &[]);
+dispatcher.with_system(System79, &[]);
+dispatcher.with_system(System80, &[]);
+dispatcher.with_system(System81, &[]);
+dispatcher.with_system(System82, &[]);
+dispatcher.with_system(System83, &[]);
+dispatcher.with_system(System84, &[]);
+dispatcher.with_system(System85, &[]);
+dispatcher.with_system(System86, &[]);
+dispatcher.with_system(System87, &[]);
+dispatcher.with_system(System88, &[]);
+dispatcher.with_system(System89, &[]);
+dispatcher.with_system(System90, &[]);
+dispatcher.with_system(System91, &[]);
+dispatcher.with_system(System92, &[]);
+dispatcher.with_system(System93, &[]);
+dispatcher.with_system(System94, &[]);
+dispatcher.with_system(System95, &[]);
+dispatcher.with_system(System96, &[]);
+dispatcher.with_system(System97, &[]);
+dispatcher.with_system(System98, &[]);
+dispatcher.with_system(System99, &[]);
+    
+    // -------------------------------------
+
+    let mut dispatcher = dispatcher.build();
+
+    let start = Instant::now();
+
+    for _ in 0..num_iter {
+        dispatcher.run(&mut world);
+    }
+
+    Instant::now().duration_since(start)
+}
+
+fn bevy_bench(iteration: usize, num_thread: usize) -> Duration {
+    let mut world = World::new();
+    world.insert_resource(ComputeTaskPool(TaskPoolBuilder::new().num_threads(num_thread).build()));
+
+    let mut schedule = Schedule::default();
+    schedule.add_stage(
+        "base_stage",
+        SystemStage::parallel()
+        // INSERT HERE ------------------------
+        .with_system(System0::bevy_system)
+	.with_system(System1::bevy_system)
+	.with_system(System2::bevy_system)
+	.with_system(System3::bevy_system)
+	.with_system(System4::bevy_system)
+	.with_system(System5::bevy_system)
+	.with_system(System6::bevy_system)
+	.with_system(System7::bevy_system)
+	.with_system(System8::bevy_system)
+	.with_system(System9::bevy_system)
+	.with_system(System10::bevy_system)
+	.with_system(System11::bevy_system)
+	.with_system(System12::bevy_system)
+	.with_system(System13::bevy_system)
+	.with_system(System14::bevy_system)
+	.with_system(System15::bevy_system)
+	.with_system(System16::bevy_system)
+	.with_system(System17::bevy_system)
+	.with_system(System18::bevy_system)
+	.with_system(System19::bevy_system)
+	.with_system(System20::bevy_system)
+	.with_system(System21::bevy_system)
+	.with_system(System22::bevy_system)
+	.with_system(System23::bevy_system)
+	.with_system(System24::bevy_system)
+	.with_system(System25::bevy_system)
+	.with_system(System26::bevy_system)
+	.with_system(System27::bevy_system)
+	.with_system(System28::bevy_system)
+	.with_system(System29::bevy_system)
+	.with_system(System30::bevy_system)
+	.with_system(System31::bevy_system)
+	.with_system(System32::bevy_system)
+	.with_system(System33::bevy_system)
+	.with_system(System34::bevy_system)
+	.with_system(System35::bevy_system)
+	.with_system(System36::bevy_system)
+	.with_system(System37::bevy_system)
+	.with_system(System38::bevy_system)
+	.with_system(System39::bevy_system)
+	.with_system(System40::bevy_system)
+	.with_system(System41::bevy_system)
+	.with_system(System42::bevy_system)
+	.with_system(System43::bevy_system)
+	.with_system(System44::bevy_system)
+	.with_system(System45::bevy_system)
+	.with_system(System46::bevy_system)
+	.with_system(System47::bevy_system)
+	.with_system(System48::bevy_system)
+	.with_system(System49::bevy_system)
+	.with_system(System50::bevy_system)
+	.with_system(System51::bevy_system)
+	.with_system(System52::bevy_system)
+	.with_system(System53::bevy_system)
+	.with_system(System54::bevy_system)
+	.with_system(System55::bevy_system)
+	.with_system(System56::bevy_system)
+	.with_system(System57::bevy_system)
+	.with_system(System58::bevy_system)
+	.with_system(System59::bevy_system)
+	.with_system(System60::bevy_system)
+	.with_system(System61::bevy_system)
+	.with_system(System62::bevy_system)
+	.with_system(System63::bevy_system)
+	.with_system(System64::bevy_system)
+	.with_system(System65::bevy_system)
+	.with_system(System66::bevy_system)
+	.with_system(System67::bevy_system)
+	.with_system(System68::bevy_system)
+	.with_system(System69::bevy_system)
+	.with_system(System70::bevy_system)
+	.with_system(System71::bevy_system)
+	.with_system(System72::bevy_system)
+	.with_system(System73::bevy_system)
+	.with_system(System74::bevy_system)
+	.with_system(System75::bevy_system)
+	.with_system(System76::bevy_system)
+	.with_system(System77::bevy_system)
+	.with_system(System78::bevy_system)
+	.with_system(System79::bevy_system)
+	.with_system(System80::bevy_system)
+	.with_system(System81::bevy_system)
+	.with_system(System82::bevy_system)
+	.with_system(System83::bevy_system)
+	.with_system(System84::bevy_system)
+	.with_system(System85::bevy_system)
+	.with_system(System86::bevy_system)
+	.with_system(System87::bevy_system)
+	.with_system(System88::bevy_system)
+	.with_system(System89::bevy_system)
+	.with_system(System90::bevy_system)
+	.with_system(System91::bevy_system)
+	.with_system(System92::bevy_system)
+	.with_system(System93::bevy_system)
+	.with_system(System94::bevy_system)
+	.with_system(System95::bevy_system)
+	.with_system(System96::bevy_system)
+	.with_system(System97::bevy_system)
+	.with_system(System98::bevy_system)
+	.with_system(System99::bevy_system)
+
+        // -------------------------------------
+    );
+
+    let start = Instant::now();
+
+    for _ in 0..iteration {
+        schedule.run(&mut world);
+    }
+
+    Instant::now().duration_since(start)
+}
+
+/// Helper macro to create components
+macro_rules! new_component {
+    ($name:ident) => {
+        #[derive(Component, Copy, Clone)]
+        struct $name(u32);
+
+        impl Component for $name {}
+    };
+}
+
+/// Helper macro to create systems
+macro_rules! new_system {
+    ($name:ident, $( $comp_w:ident )*, $( $comp_r:ident )* ) => {
+        struct $name;
+
+        impl $name {
+            fn bevy_system(_: Query<( $(&mut $comp_w,)* $(&$comp_r,)* )>) {
+                
+            }
+        }
+
+        impl System for $name {
+            type Components = ( $(Write<$comp_w>,)* $(Read<$comp_r>,)* );
+
+            fn tick(&mut self, _: QueryGenerator) {
+                
+            }
+        }
+    };
+}
+
+// every component not connected to
+new_component! { Component0 }
+new_component! { Component1 }
+new_component! { Component2 }
+new_component! { Component3 }
+new_component! { Component4 }
+new_component! { Component5 }
+new_component! { Component6 }
+new_component! { Component7 }
+new_component! { Component8 }
+new_component! { Component9 }
+new_component! { Component10 }
+new_component! { Component11 }
+new_component! { Component12 }
+new_component! { Component13 }
+new_component! { Component14 }
+new_component! { Component15 }
+new_component! { Component16 }
+new_component! { Component17 }
+new_component! { Component18 }
+new_component! { Component19 }
+new_component! { Component20 }
+new_component! { Component21 }
+new_component! { Component22 }
+new_component! { Component23 }
+new_component! { Component24 }
+new_component! { Component25 }
+new_component! { Component26 }
+new_component! { Component27 }
+new_component! { Component28 }
+new_component! { Component29 }
+new_component! { Component30 }
+new_component! { Component31 }
+new_component! { Component32 }
+new_component! { Component33 }
+new_component! { Component34 }
+new_component! { Component35 }
+new_component! { Component36 }
+new_component! { Component37 }
+new_component! { Component38 }
+new_component! { Component39 }
+new_component! { Component40 }
+new_component! { Component41 }
+new_component! { Component42 }
+new_component! { Component43 }
+new_component! { Component44 }
+new_component! { Component45 }
+new_component! { Component46 }
+new_component! { Component47 }
+new_component! { Component48 }
+new_component! { Component49 }
+new_component! { Component50 }
+new_component! { Component51 }
+new_component! { Component52 }
+new_component! { Component53 }
+new_component! { Component54 }
+new_component! { Component55 }
+new_component! { Component56 }
+new_component! { Component57 }
+new_component! { Component58 }
+new_component! { Component59 }
+new_component! { Component60 }
+new_component! { Component61 }
+new_component! { Component62 }
+new_component! { Component63 }
+new_component! { Component64 }
+new_component! { Component65 }
+new_component! { Component66 }
+new_component! { Component67 }
+new_component! { Component68 }
+new_component! { Component69 }
+new_component! { Component70 }
+new_component! { Component71 }
+new_component! { Component72 }
+new_component! { Component73 }
+new_component! { Component74 }
+new_component! { Component75 }
+new_component! { Component76 }
+new_component! { Component77 }
+new_component! { Component78 }
+new_component! { Component79 }
+new_component! { Component80 }
+new_component! { Component81 }
+new_component! { Component82 }
+new_component! { Component83 }
+new_component! { Component84 }
+new_component! { Component85 }
+new_component! { Component86 }
+new_component! { Component87 }
+new_component! { Component88 }
+new_component! { Component89 }
+new_component! { Component90 }
+new_component! { Component91 }
+new_component! { Component92 }
+new_component! { Component93 }
+new_component! { Component94 }
+new_component! { Component95 }
+new_component! { Component96 }
+new_component! { Component97 }
+new_component! { Component98 }
+new_component! { Component99 }
+
+new_system! { System0, Component0, Component7 Component50 Component81 Component88 }
+new_system! { System1, Component1, Component8 Component11 Component35 Component50 Component60 }
+new_system! { System2, Component2, Component10 Component12 Component16 Component23 Component86 }
+new_system! { System3, Component3, Component26 Component50 Component91 }
+new_system! { System4, Component4, Component22 Component26 Component28 Component32 Component54 Component81 }
+new_system! { System5, Component5, Component8 Component38 Component49 Component77 Component90 Component91 Component97 }
+new_system! { System6, Component6, Component65 Component72 }
+new_system! { System7, Component7, Component0 Component78 Component80 Component86 Component92 }
+new_system! { System8, Component8, Component1 Component5 Component36 Component91 }
+new_system! { System9, Component9, Component22 Component45 Component50 Component63 Component99 }
+new_system! { System10, Component10, Component2 Component34 Component36 Component62 Component64 Component86 Component93 Component94 }
+new_system! { System11, Component11, Component1 Component21 Component40 Component78 }
+new_system! { System12, Component12, Component2 Component32 Component50 Component57 Component85 }
+new_system! { System13, Component13, Component14 Component44 Component83 }
+new_system! { System14, Component14, Component13 Component22 Component23 Component36 Component39 Component43 Component69 Component97 }
+new_system! { System15, Component15, }
+new_system! { System16, Component16, Component2 Component21 Component38 Component39 Component41 Component64 Component81 }
+new_system! { System17, Component17, Component28 Component31 Component38 Component47 Component50 Component74 Component89 }
+new_system! { System18, Component18, Component20 Component29 Component38 Component43 Component45 Component74 }
+new_system! { System19, Component19, Component49 Component56 Component57 Component89 }
+new_system! { System20, Component20, Component18 Component68 Component75 Component78 Component82 Component88 Component94 }
+new_system! { System21, Component21, Component11 Component16 Component42 Component51 Component63 }
+new_system! { System22, Component22, Component4 Component9 Component14 Component29 Component71 Component86 }
+new_system! { System23, Component23, Component2 Component14 Component29 Component42 Component50 Component68 Component76 Component92 }
+new_system! { System24, Component24, Component78 }
+new_system! { System25, Component25, Component28 Component40 Component51 Component63 Component71 Component79 }
+new_system! { System26, Component26, Component3 Component4 Component46 Component72 }
+new_system! { System27, Component27, Component45 Component55 }
+new_system! { System28, Component28, Component4 Component17 Component25 Component61 Component75 }
+new_system! { System29, Component29, Component18 Component22 Component23 Component65 }
+new_system! { System30, Component30, Component42 Component82 Component96 Component98 }
+new_system! { System31, Component31, Component17 Component50 Component55 Component58 Component62 Component71 Component88 Component92 }
+new_system! { System32, Component32, Component4 Component12 Component36 Component37 Component44 Component51 Component79 Component80 Component92 }
+new_system! { System33, Component33, Component40 Component53 Component57 Component59 Component86 }
+new_system! { System34, Component34, Component10 Component35 Component41 Component64 Component82 Component97 }
+new_system! { System35, Component35, Component1 Component34 Component40 }
+new_system! { System36, Component36, Component8 Component10 Component14 Component32 Component42 Component65 Component90 }
+new_system! { System37, Component37, Component32 Component38 Component40 Component48 Component49 Component72 }
+new_system! { System38, Component38, Component5 Component16 Component17 Component18 Component37 Component42 Component53 Component62 Component78 Component82 Component85 }
+new_system! { System39, Component39, Component14 Component16 Component86 Component89 }
+new_system! { System40, Component40, Component11 Component25 Component33 Component35 Component37 Component43 Component53 Component66 Component70 Component86 Component95 }
+new_system! { System41, Component41, Component16 Component34 Component47 Component49 Component56 Component58 Component66 Component69 Component71 }
+new_system! { System42, Component42, Component21 Component23 Component30 Component36 Component38 Component62 }
+new_system! { System43, Component43, Component14 Component18 Component40 Component49 Component52 Component66 Component68 }
+new_system! { System44, Component44, Component13 Component32 Component57 Component61 Component96 }
+new_system! { System45, Component45, Component9 Component18 Component27 }
+new_system! { System46, Component46, Component26 Component57 Component77 Component85 Component94 }
+new_system! { System47, Component47, Component17 Component41 Component51 Component54 Component65 Component70 Component73 Component74 }
+new_system! { System48, Component48, Component37 Component60 Component96 }
+new_system! { System49, Component49, Component5 Component19 Component37 Component41 Component43 Component50 Component56 Component66 Component82 Component96 }
+new_system! { System50, Component50, Component0 Component1 Component3 Component9 Component12 Component17 Component23 Component31 Component49 Component64 Component72 Component80 Component83 Component96 }
+new_system! { System51, Component51, Component21 Component25 Component32 Component47 Component63 Component65 Component77 Component86 Component95 }
+new_system! { System52, Component52, Component43 Component77 Component87 Component95 }
+new_system! { System53, Component53, Component33 Component38 Component40 Component55 Component73 Component77 Component88 }
+new_system! { System54, Component54, Component4 Component47 Component71 Component81 Component83 }
+new_system! { System55, Component55, Component27 Component31 Component53 Component80 Component90 }
+new_system! { System56, Component56, Component19 Component41 Component49 Component64 Component65 Component73 }
+new_system! { System57, Component57, Component12 Component19 Component33 Component44 Component46 Component91 }
+new_system! { System58, Component58, Component31 Component41 Component60 Component65 Component77 Component99 }
+new_system! { System59, Component59, Component33 Component63 Component65 Component76 Component79 Component87 Component89 }
+new_system! { System60, Component60, Component1 Component48 Component58 Component61 Component65 Component71 Component82 Component86 }
+new_system! { System61, Component61, Component28 Component44 Component60 Component84 Component97 }
+new_system! { System62, Component62, Component10 Component31 Component38 Component42 Component68 Component72 Component77 Component82 Component99 }
+new_system! { System63, Component63, Component9 Component21 Component25 Component51 Component59 Component86 }
+new_system! { System64, Component64, Component10 Component16 Component34 Component50 Component56 Component81 Component92 }
+new_system! { System65, Component65, Component6 Component29 Component36 Component47 Component51 Component56 Component58 Component59 Component60 }
+new_system! { System66, Component66, Component40 Component41 Component43 Component49 Component88 }
+new_system! { System67, Component67, Component72 Component92 Component96 }
+new_system! { System68, Component68, Component20 Component23 Component43 Component62 Component76 Component82 Component93 Component99 }
+new_system! { System69, Component69, Component14 Component41 Component75 Component79 Component92 }
+new_system! { System70, Component70, Component40 Component47 }
+new_system! { System71, Component71, Component22 Component25 Component31 Component41 Component54 Component60 }
+new_system! { System72, Component72, Component6 Component26 Component37 Component50 Component62 Component67 Component78 }
+new_system! { System73, Component73, Component47 Component53 Component56 }
+new_system! { System74, Component74, Component17 Component18 Component47 }
+new_system! { System75, Component75, Component20 Component28 Component69 Component87 Component94 Component95 }
+new_system! { System76, Component76, Component23 Component59 Component68 Component86 Component98 }
+new_system! { System77, Component77, Component5 Component46 Component51 Component52 Component53 Component58 Component62 Component83 Component84 Component88 Component98 Component99 }
+new_system! { System78, Component78, Component7 Component11 Component20 Component24 Component38 Component72 Component93 }
+new_system! { System79, Component79, Component25 Component32 Component59 Component69 Component81 Component84 }
+new_system! { System80, Component80, Component7 Component32 Component50 Component55 Component82 }
+new_system! { System81, Component81, Component0 Component4 Component16 Component54 Component64 Component79 Component91 }
+new_system! { System82, Component82, Component20 Component30 Component34 Component38 Component49 Component60 Component62 Component68 Component80 Component84 Component94 }
+new_system! { System83, Component83, Component13 Component50 Component54 Component77 }
+new_system! { System84, Component84, Component61 Component77 Component79 Component82 Component88 Component93 Component99 }
+new_system! { System85, Component85, Component12 Component38 Component46 }
+new_system! { System86, Component86, Component2 Component7 Component10 Component22 Component33 Component39 Component40 Component51 Component60 Component63 Component76 Component92 }
+new_system! { System87, Component87, Component52 Component59 Component75 Component90 Component98 }
+new_system! { System88, Component88, Component0 Component20 Component31 Component53 Component66 Component77 Component84 Component89 Component97 }
+new_system! { System89, Component89, Component17 Component19 Component39 Component59 Component88 }
+new_system! { System90, Component90, Component5 Component36 Component55 Component87 Component99 }
+new_system! { System91, Component91, Component3 Component5 Component8 Component57 Component81 }
+new_system! { System92, Component92, Component7 Component23 Component31 Component32 Component64 Component67 Component69 Component86 }
+new_system! { System93, Component93, Component10 Component68 Component78 Component84 }
+new_system! { System94, Component94, Component10 Component20 Component46 Component75 Component82 }
+new_system! { System95, Component95, Component40 Component51 Component52 Component75 }
+new_system! { System96, Component96, Component30 Component44 Component48 Component49 Component50 Component67 }
+new_system! { System97, Component97, Component5 Component14 Component34 Component61 Component88 }
+new_system! { System98, Component98, Component30 Component76 Component77 Component87 }
+new_system! { System99, Component99, Component9 Component58 Component62 Component68 Component77 Component84 Component90 }
+/*
+
+
+new_system! { System0, Component0, Component0 Component1 Component2 Component3 Component4 Component5 Component6 }
+new_system! { System1, Component0, Component0 Component1 Component2 Component3 Component4 Component5 Component6 }
+new_system! { System2, Component0, Component0 Component1 Component2 Component3 Component4 Component5 Component6 }
+new_system! { System3, Component0, Component0 Component1 Component2 Component3 Component4 Component5 Component6 }
+new_system! { System4, Component0, Component0 Component1 Component2 Component3 Component4 Component5 Component6 }
+new_system! { System5, Component0, Component0 Component1 Component2 Component3 Component4 Component5 Component6 }
+new_system! { System6, Component0, Component0 Component1 Component2 Component3 Component4 Component5 Component6 }
+
+*/
